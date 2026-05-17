@@ -1,2 +1,18 @@
-[Bb]in/
-[Oo]bj/
+# Build outputs
+bin/
+obj/
+
+# IDE/editor
+.vs/
+*.user
+*.suo
+
+# Test outputs
+TestResults/
+
+# Publish/package artifacts
+publish/
+*.nupkg
+
+# Local logs
+*.log
