@@ -3,24 +3,32 @@ using Docquery.Server.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 app.UseHttpsRedirection();
 
-app.MapPost("/api/qa/ask", (DocumentAskRequest request) =>
+app.MapPost("/api/qa/ask", (DocumentAskRequest? request) =>
 {
+    if (request is null)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["body"] = ["Request body is required."]
+        });
+    }
+
     var validationErrors = Validate(request);
     if (validationErrors is not null)
     {
@@ -33,6 +41,8 @@ app.MapPost("/api/qa/ask", (DocumentAskRequest request) =>
         statusCode: StatusCodes.Status501NotImplemented);
 })
     .WithName("AskDocumentQuestion")
+    .WithSummary("Ask a question about the provided document text.")
+    .WithDescription("Accepts the full document text and a user question, then returns the generated answer and processing metadata.")
     .Accepts<DocumentAskRequest>("application/json")
     .ProducesValidationProblem(StatusCodes.Status400BadRequest)
     .Produces<DocumentAskResponse>(StatusCodes.Status200OK)

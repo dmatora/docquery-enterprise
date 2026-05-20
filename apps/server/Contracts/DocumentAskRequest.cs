@@ -7,9 +7,9 @@ public sealed record DocumentAskRequest
 {
     [JsonPropertyName("DocumentText")]
     [Required(AllowEmptyStrings = false)]
-    public required string DocumentText { get; init; }
+    public string? DocumentText { get; init; }
 
     [JsonPropertyName("Question")]
     [Required(AllowEmptyStrings = false)]
-    public required string Question { get; init; }
+    public string? Question { get; init; }
 }
