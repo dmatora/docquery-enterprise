@@ -1,6 +1,11 @@
 @Docquery.Server_HostAddress = http://localhost:5152
 
-GET {{Docquery.Server_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{Docquery.Server_HostAddress}}/api/qa/ask
+Content-Type: application/json
+
+{
+  "DocumentText": "Section 1. Payment is due within 15 calendar days after invoice receipt.",
+  "Question": "What is the payment term in this document?"
+}
 
 ###
