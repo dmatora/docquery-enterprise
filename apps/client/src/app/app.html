@@ -1,10 +1,139 @@
-<main class="shell">
-  <section class="hero">
-    <p class="eyebrow">Nx + Angular</p>
-    <h1>{{ title }}</h1>
-    <p class="summary">
-      Frontend workspace for document analysis flows. Start building features in
-      <code>apps/client/src/app</code>.
-    </p>
-  </section>
+<main class="workspace-shell">
+  <div class="workspace-container">
+    <header class="workspace-topbar">
+      <div class="min-w-0">
+        <p class="workspace-kicker">Angular + ASP.NET Core</p>
+        <h1>{{ title }}</h1>
+      </div>
+
+      <div class="api-target">
+        <span>API target</span>
+        <strong>{{ environmentLabel }}</strong>
+        <code>{{ apiBaseUrl }}</code>
+      </div>
+    </header>
+
+    <section class="workspace-grid">
+      <article class="panel-shell">
+        <div class="panel-header">
+          <div>
+            <p class="panel-eyebrow">Document</p>
+            <h2 class="panel-title">Source text</h2>
+          </div>
+
+          <div class="panel-metrics">
+            <span class="metric-pill">{{ documentMetrics.characters.toLocaleString() }} chars</span>
+            <span class="metric-pill">{{ documentMetrics.words.toLocaleString() }} words</span>
+          </div>
+        </div>
+
+        <label class="document-field">
+          <span class="sr-only">Document text</span>
+          <textarea
+            class="field-textarea document-textarea"
+            [formControl]="documentTextControl"
+            [readonly]="isSubmitting()"
+            placeholder="Paste the document text here."
+          ></textarea>
+        </label>
+
+        @if (documentTextControl.invalid && documentTextControl.touched) {
+          <p class="field-error">Document text is required.</p>
+        }
+      </article>
+
+      <article class="panel-shell qa-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-eyebrow">Analysis</p>
+            <h2 class="panel-title">Question and answer</h2>
+          </div>
+
+          <span class="metric-pill">Single request context</span>
+        </div>
+
+        <form class="qa-composer" [formGroup]="documentForm" (ngSubmit)="submitQuestion()">
+          <div class="request-row">
+            <span class="question-counter">{{ questionCharacterCount.toLocaleString() }} chars</span>
+          </div>
+
+          <div class="question-field">
+            <label for="qa-question">Question</label>
+            <textarea
+              id="qa-question"
+              class="field-textarea question-textarea"
+              formControlName="question"
+              [readonly]="isSubmitting()"
+              placeholder="Ask a question about the current document."
+            ></textarea>
+          </div>
+
+          @if (questionControl.invalid && questionControl.touched) {
+            <p class="field-error">A question is required.</p>
+          }
+
+          <div class="composer-actions">
+            <button class="submit-button" type="submit" [disabled]="!canSubmit">
+              @if (isSubmitting()) {
+                <span class="spinner-ring spinner-ring-dark"></span>
+                <span>Sending...</span>
+              } @else {
+                <span>Submit question</span>
+              }
+            </button>
+          </div>
+        </form>
+
+        <div class="answer-history">
+          @if (!latestResult()) {
+            <div class="empty-state">
+              <p>Each question is sent independently. Only the latest result is shown here.</p>
+            </div>
+          } @else {
+            <div class="conversation-card">
+              <div class="conversation-card-header">
+                <div>
+                  <p class="conversation-label">Latest question</p>
+                  <p class="conversation-question">{{ latestResult()!.question }}</p>
+                </div>
+
+                <span
+                  class="conversation-state"
+                  [class.conversation-state--loading]="latestResult()!.state === 'loading'"
+                  [class.conversation-state--success]="latestResult()!.state === 'success'"
+                  [class.conversation-state--error]="latestResult()!.state === 'error'"
+                >
+                  {{ latestResult()!.state === 'loading' ? 'Pending' : latestResult()!.state === 'success' ? 'Answered' : 'Failed' }}
+                </span>
+              </div>
+
+              <div class="answer-card">
+                @if (latestResult()!.state === 'loading') {
+                  <div class="loading-answer" aria-hidden="true">
+                    <div class="loading-answer-lines">
+                      <span class="loading-answer-line loading-answer-line--long"></span>
+                      <span class="loading-answer-line"></span>
+                    </div>
+                  </div>
+                } @else if (latestResult()!.state === 'error') {
+                  <div class="error-answer">
+                    <p>{{ latestResult()!.errorTitle }}</p>
+                    <span>{{ latestResult()!.errorMessage }}</span>
+                  </div>
+                } @else {
+                  <div class="success-answer">
+                    <p>{{ latestResult()!.answer }}</p>
+                    <div class="answer-metadata">
+                      <span>{{ formatProcessingTime(latestResult()!.metadata?.ProcessingTimeMs) }}</span>
+                      <span>{{ formatUsage(latestResult()!.metadata?.Usage) }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+  </div>
 </main>

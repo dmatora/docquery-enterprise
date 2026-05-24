@@ -1,48 +1,249 @@
-.shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-  background:
-    radial-gradient(circle at top, #e0f2fe 0%, #f8fafc 45%, #ffffff 100%);
-  color: #0f172a;
+:host {
+  display: block;
 }
 
-.hero {
-  width: min(100%, 48rem);
-  padding: 2rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+.workspace-shell {
+  @apply min-h-screen overflow-x-hidden bg-slate-100 text-slate-950;
 }
 
-.eyebrow {
-  margin: 0 0 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #0369a1;
+.workspace-container {
+  @apply mx-auto flex min-h-screen w-full max-w-[1600px] flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:p-5;
 }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2.25rem, 5vw, 4rem);
-  line-height: 1;
+.workspace-topbar {
+  @apply flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between;
 }
 
-.summary {
-  margin: 1rem 0 0;
-  max-width: 42rem;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #334155;
+.workspace-kicker {
+  @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500;
 }
 
-code {
-  padding: 0.1rem 0.35rem;
-  border-radius: 0.375rem;
-  background: #e2e8f0;
-  font-family: "Cascadia Code", "Fira Code", monospace;
+.workspace-topbar h1 {
+  @apply mt-1 truncate text-2xl font-semibold text-slate-950 sm:text-3xl;
+}
+
+.api-target {
+  @apply flex min-w-0 flex-col rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 sm:min-w-72;
+}
+
+.api-target strong {
+  @apply mt-1 text-sm font-semibold text-slate-900;
+}
+
+.api-target code {
+  @apply mt-1 truncate font-mono text-[11px] text-slate-500;
+}
+
+.workspace-grid {
+  @apply grid flex-1 gap-3 sm:gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.86fr)];
+}
+
+.panel-shell {
+  @apply flex min-h-[18rem] flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:min-h-[24rem];
+}
+
+.qa-panel {
+  @apply min-h-[28rem];
+}
+
+.panel-header {
+  @apply flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3;
+}
+
+.panel-eyebrow {
+  @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500;
+}
+
+.panel-title {
+  @apply mt-1 text-xl font-semibold text-slate-950;
+}
+
+.panel-metrics {
+  @apply flex flex-wrap gap-2;
+}
+
+.metric-pill {
+  @apply rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600;
+}
+
+.document-field {
+  @apply mt-4 flex min-h-0 flex-1;
+}
+
+.field-textarea {
+  @apply w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:opacity-70;
+}
+
+.document-textarea {
+  @apply min-h-[12rem] flex-1 resize-none sm:min-h-[18rem];
+}
+
+.qa-composer {
+  @apply mt-4 shrink-0 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3;
+}
+
+.request-row {
+  @apply flex items-center justify-end;
+}
+
+.question-counter {
+  @apply text-xs text-slate-500;
+}
+
+.question-field {
+  @apply space-y-2;
+}
+
+.question-field label {
+  @apply block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500;
+}
+
+.question-textarea {
+  @apply min-h-24 resize-none;
+}
+
+.composer-actions {
+  @apply flex justify-end;
+}
+
+.submit-button {
+  @apply inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 sm:w-auto;
+}
+
+.answer-history {
+  @apply mt-4 min-h-[12rem] flex-1 space-y-3 overflow-y-auto pr-1;
+}
+
+.empty-state {
+  @apply flex min-h-[9rem] items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500;
+}
+
+.conversation-card {
+  @apply space-y-3 rounded-md border border-slate-200 bg-white p-3 shadow-sm;
+}
+
+.conversation-card-header {
+  @apply flex items-start justify-between gap-3;
+}
+
+.conversation-label {
+  @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+}
+
+.conversation-question {
+  @apply mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-900;
+}
+
+.conversation-state {
+  @apply shrink-0 rounded-md border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em];
+}
+
+.conversation-state--loading {
+  @apply border-sky-200 bg-sky-50 text-sky-700;
+}
+
+.conversation-state--success {
+  @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+}
+
+.conversation-state--error {
+  @apply border-rose-200 bg-rose-50 text-rose-700;
+}
+
+.answer-card {
+  @apply rounded-md border border-slate-200 bg-slate-50 p-3;
+}
+
+.loading-answer {
+  @apply flex;
+}
+
+.loading-answer-lines {
+  @apply flex min-w-0 flex-1 flex-col gap-2;
+}
+
+.loading-answer-line {
+  @apply block h-3 rounded bg-slate-200;
+}
+
+.loading-answer-line--long {
+  @apply w-11/12;
+}
+
+.loading-answer-line:not(.loading-answer-line--long) {
+  @apply w-7/12;
+}
+
+.error-answer {
+  @apply space-y-1 text-sm text-rose-700;
+}
+
+.error-answer p {
+  @apply font-semibold;
+}
+
+.success-answer {
+  @apply space-y-3;
+}
+
+.success-answer p {
+  @apply whitespace-pre-wrap text-sm leading-6 text-slate-900;
+}
+
+.answer-metadata {
+  @apply flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-200 pt-2 text-xs text-slate-500;
+}
+
+.field-error {
+  @apply mt-2 text-sm text-rose-700;
+}
+
+.field-textarea::-webkit-scrollbar,
+.answer-history::-webkit-scrollbar {
+  width: 10px;
+}
+
+.field-textarea::-webkit-scrollbar-track,
+.answer-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.field-textarea::-webkit-scrollbar-thumb,
+.answer-history::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+  background-clip: padding-box;
+}
+
+.spinner-ring {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.2);
+  border-top-color: rgb(2 132 199);
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-ring-dark {
+  border-color: rgba(255, 255, 255, 0.25);
+  border-top-color: rgb(255 255 255);
+}
+
+@media (min-width: 1024px) {
+  .panel-shell {
+    min-height: min(720px, calc(100vh - 7.25rem));
+    max-height: calc(100vh - 7.25rem);
+    overflow: hidden;
+  }
+
+  .document-textarea {
+    min-height: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -1,6 +1,7 @@
 using System.ClientModel;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Docquery.Server.Contracts;
 using Docquery.Server.Options;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,10 @@ public sealed class ChatCompletionService(
     IOptions<DocumentQaOptions> documentQaOptions,
     ILogger<ChatCompletionService> logger) : IDocumentQaService
 {
+    private static readonly Regex ThinkBlockRegex = new(
+        "<think>.*?</think>",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
     private readonly ChatClient _chatClient = chatClient;
     private readonly DocumentQaOptions _documentQaOptions = documentQaOptions.Value;
     private readonly ILogger<ChatCompletionService> _logger = logger;
@@ -99,18 +104,18 @@ public sealed class ChatCompletionService(
     private static string ExtractAnswer(ChatCompletion completion)
     {
         var textParts = completion.Content
-            .Select(part => part.Text)
+            .Select(part => part.Text ?? string.Empty)
             .Where(text => !string.IsNullOrWhiteSpace(text))
             .ToArray();
 
         if (textParts.Length > 0)
         {
-            return string.Concat(textParts).Trim();
+            return SanitizeAnswer(string.Concat(textParts));
         }
 
         if (!string.IsNullOrWhiteSpace(completion.Refusal))
         {
-            return completion.Refusal.Trim();
+            return SanitizeAnswer(completion.Refusal);
         }
 
         throw new DocumentQaException(
@@ -263,6 +268,16 @@ public sealed class ChatCompletionService(
             && property.ValueKind == JsonValueKind.String
             ? property.GetString()
             : null;
+    }
+
+    private static string SanitizeAnswer(string? answer)
+    {
+        var trimmedAnswer = answer?.Trim() ?? string.Empty;
+        var sanitizedAnswer = ThinkBlockRegex.Replace(trimmedAnswer, string.Empty).Trim();
+
+        return string.IsNullOrWhiteSpace(sanitizedAnswer)
+            ? trimmedAnswer
+            : sanitizedAnswer;
     }
 
     private static bool Contains(string? value, string fragment)
