@@ -76,10 +76,6 @@ public sealed class ChatCompletionService(
                 "The upstream LLM provider could not be reached. Verify the endpoint configuration and try again.",
                 exception);
         }
-        catch (AggregateException exception) when (TryMapAggregateException(exception, out var mappedException))
-        {
-            throw mappedException;
-        }
     }
 
     private IReadOnlyList<ChatMessage> BuildMessages(DocumentAskRequest request)
@@ -177,39 +173,6 @@ public sealed class ChatCompletionService(
                 BuildProviderFailureDetail(exception.Status, providerError.Message),
                 exception)
         };
-    }
-
-    private bool TryMapAggregateException(
-        AggregateException exception,
-        out DocumentQaException mappedException)
-    {
-        var clientResultException = exception.Flatten().InnerExceptions.OfType<ClientResultException>().FirstOrDefault();
-        if (clientResultException is not null)
-        {
-            _logger.LogError(
-                exception,
-                "LLM provider request failed after retries. Last provider status was {StatusCode}.",
-                clientResultException.Status);
-
-            mappedException = MapProviderException(clientResultException);
-            return true;
-        }
-
-        var httpRequestException = exception.Flatten().InnerExceptions.OfType<HttpRequestException>().FirstOrDefault();
-        if (httpRequestException is not null)
-        {
-            _logger.LogError(exception, "LLM provider request failed after retries before receiving a response.");
-
-            mappedException = new DocumentQaException(
-                StatusCodes.Status503ServiceUnavailable,
-                "LLM provider is unavailable.",
-                "The upstream LLM provider could not be reached. Verify the endpoint configuration and try again.",
-                exception);
-            return true;
-        }
-
-        mappedException = null!;
-        return false;
     }
 
     private static DocumentQaException CreateContextLimitException(ClientResultException exception, string? providerMessage)
