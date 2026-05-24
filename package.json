@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "prepare": "set NX_DAEMON=false&& set NX_ISOLATE_PLUGINS=false&& nx g @nx-dotnet/core:restore",
+    "prepare": "set NX_DAEMON=false&& set NX_ISOLATE_PLUGINS=false&& nx g @nx-dotnet/core:restore || echo 'Dotnet not found, skipping restore'",
     "reset:nx": "set NX_DAEMON=false&& set NX_ISOLATE_PLUGINS=false&& nx reset",
     "show:projects": "set NX_DAEMON=false&& set NX_ISOLATE_PLUGINS=false&& nx show projects",
     "serve:client": "set NX_DAEMON=false&& set NX_ISOLATE_PLUGINS=false&& nx serve client",
