@@ -1,5 +1,6 @@
 using System.ClientModel;
 using System.Diagnostics;
+using System.Text.Json;
 using Docquery.Server.Contracts;
 using Docquery.Server.Options;
 using Microsoft.Extensions.Options;
@@ -52,12 +53,18 @@ public sealed class ChatCompletionService(
         }
         catch (ClientResultException exception)
         {
-            _logger.LogError(
-                exception,
-                "LLM provider returned HTTP {StatusCode}.",
-                exception.Status);
+            var mappedException = MapProviderException(exception);
 
-            throw MapProviderException(exception);
+            _logger.Log(
+                mappedException.StatusCode >= StatusCodes.Status500InternalServerError
+                    ? LogLevel.Error
+                    : LogLevel.Warning,
+                exception,
+                "LLM provider returned HTTP {ProviderStatusCode}. Mapped to API status {ApiStatusCode}.",
+                exception.Status,
+                mappedException.StatusCode);
+
+            throw mappedException;
         }
         catch (HttpRequestException exception)
         {
@@ -133,6 +140,8 @@ public sealed class ChatCompletionService(
 
     private static DocumentQaException MapProviderException(ClientResultException exception)
     {
+        var providerError = ReadProviderError(exception);
+
         return exception.Status switch
         {
             <= 0 => new DocumentQaException(
@@ -140,6 +149,8 @@ public sealed class ChatCompletionService(
                 "LLM provider is unavailable.",
                 "The upstream LLM provider could not be reached. Verify the endpoint configuration and try again.",
                 exception),
+            400 when IsContextLimitExceeded(providerError) => CreateContextLimitException(exception, providerError.Message),
+            413 => CreateContextLimitException(exception, providerError.Message),
             401 or 403 => new DocumentQaException(
                 StatusCodes.Status502BadGateway,
                 "LLM provider authentication failed.",
@@ -163,7 +174,7 @@ public sealed class ChatCompletionService(
             _ => new DocumentQaException(
                 StatusCodes.Status502BadGateway,
                 "LLM provider request failed.",
-                $"The upstream LLM provider returned HTTP {exception.Status}.",
+                BuildProviderFailureDetail(exception.Status, providerError.Message),
                 exception)
         };
     }
@@ -200,4 +211,102 @@ public sealed class ChatCompletionService(
         mappedException = null!;
         return false;
     }
+
+    private static DocumentQaException CreateContextLimitException(ClientResultException exception, string? providerMessage)
+    {
+        return new DocumentQaException(
+            StatusCodes.Status413PayloadTooLarge,
+            "Document exceeds the model context limit.",
+            BuildContextLimitDetail(providerMessage),
+            exception);
+    }
+
+    private static string BuildContextLimitDetail(string? providerMessage)
+    {
+        const string defaultDetail =
+            "The supplied document text and question are too large for the configured model context window. Reduce the input size or switch to a model with a larger context window.";
+
+        return string.IsNullOrWhiteSpace(providerMessage)
+            ? defaultDetail
+            : $"{defaultDetail} Provider message: {providerMessage}";
+    }
+
+    private static string BuildProviderFailureDetail(int statusCode, string? providerMessage)
+    {
+        return string.IsNullOrWhiteSpace(providerMessage)
+            ? $"The upstream LLM provider returned HTTP {statusCode}."
+            : $"The upstream LLM provider returned HTTP {statusCode}. Provider message: {providerMessage}";
+    }
+
+    private static bool IsContextLimitExceeded(ProviderErrorDetails providerError)
+    {
+        return Contains(providerError.Code, "context_length_exceeded")
+            || Contains(providerError.Type, "context_length_exceeded")
+            || Contains(providerError.Message, "maximum context length")
+            || Contains(providerError.Message, "context length")
+            || Contains(providerError.Message, "context window")
+            || Contains(providerError.Message, "too many tokens")
+            || Contains(providerError.Message, "token limit")
+            || Contains(providerError.Message, "prompt is too long")
+            || Contains(providerError.Message, "input is too long");
+    }
+
+    private static ProviderErrorDetails ReadProviderError(ClientResultException exception)
+    {
+        var rawResponse = exception.GetRawResponse();
+        if (rawResponse is null)
+        {
+            return new ProviderErrorDetails(null, null, exception.Message);
+        }
+
+        string? content = null;
+        try
+        {
+            content = rawResponse.Content.ToString();
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return new ProviderErrorDetails(null, null, exception.Message);
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(content);
+            var root = document.RootElement;
+            var errorElement = root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("error", out var nestedError)
+                && nestedError.ValueKind == JsonValueKind.Object
+                    ? nestedError
+                    : root;
+
+            return new ProviderErrorDetails(
+                ReadJsonString(errorElement, "code"),
+                ReadJsonString(errorElement, "type"),
+                ReadJsonString(errorElement, "message") ?? exception.Message);
+        }
+        catch (JsonException)
+        {
+            return new ProviderErrorDetails(null, null, content);
+        }
+    }
+
+    private static string? ReadJsonString(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out var property)
+            && property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+    }
+
+    private static bool Contains(string? value, string fragment)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(fragment, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed record ProviderErrorDetails(string? Code, string? Type, string? Message);
 }

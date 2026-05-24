@@ -21,6 +21,7 @@ public static class QaEndpoints
             .Accepts<DocumentAskRequest>("application/json")
             .ProducesValidationProblem(StatusCodes.Status400BadRequest)
             .Produces<DocumentAskResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status413PayloadTooLarge)
             .ProducesProblem(StatusCodes.Status502BadGateway)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
             .ProducesProblem(StatusCodes.Status504GatewayTimeout)
