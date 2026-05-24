@@ -103,7 +103,7 @@
 }
 
 .composer-actions {
-  @apply flex justify-end;
+  @apply flex flex-wrap items-center justify-between gap-3;
 }
 
 .submit-button {

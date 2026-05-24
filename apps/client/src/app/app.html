@@ -13,6 +13,72 @@
       </div>
     </header>
 
+    <section class="security-shell">
+      <div class="security-header">
+        <div>
+          <p class="panel-eyebrow">Access</p>
+          <h2 class="security-title">Shared access key</h2>
+          <p class="security-copy">Document analysis requests stay locked until this browser stores the shared server key.</p>
+        </div>
+
+        @if (hasAccessKey() && !isEditingAccessKey()) {
+          <div class="security-status">
+            <span class="security-badge">Configured</span>
+            <code>{{ maskedAccessKey() }}</code>
+          </div>
+        }
+      </div>
+
+      @if (!hasAccessKey() || isEditingAccessKey()) {
+        <form class="security-form" [formGroup]="accessKeyForm" (ngSubmit)="saveAccessKey()">
+          <div class="security-field">
+            <label for="access-key">Access key</label>
+            <input
+              id="access-key"
+              class="field-input"
+              type="password"
+              formControlName="accessKey"
+              autocomplete="current-password"
+              spellcheck="false"
+              placeholder="Paste the shared access key from the server owner."
+            />
+          </div>
+
+          <div class="security-actions">
+            <button class="submit-button" type="submit" [disabled]="accessKeyForm.invalid">
+              <span>Save key</span>
+            </button>
+
+            @if (hasAccessKey()) {
+              <button class="secondary-button" type="button" (click)="cancelAccessKeyEdit()">
+                <span>Cancel</span>
+              </button>
+            }
+          </div>
+        </form>
+
+        @if (accessKeyControl.invalid && accessKeyControl.touched) {
+          <p class="field-error">Access key is required.</p>
+        }
+
+        <p class="security-note">The key is stored in `localStorage` and sent automatically in the `X-Api-Access-Key` header.</p>
+      } @else {
+        <div class="security-summary">
+          <p>The browser now attaches the shared access key to every request sent to the Docquery API.</p>
+
+          <div class="security-actions">
+            <button class="secondary-button" type="button" (click)="startAccessKeyEdit()">
+              <span>Change key</span>
+            </button>
+
+            <button class="ghost-button" type="button" (click)="clearAccessKey()">
+              <span>Remove key</span>
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
     <section class="workspace-grid">
       <article class="panel-shell">
         <div class="panel-header">
@@ -49,7 +115,7 @@
             <h2 class="panel-title">Question and answer</h2>
           </div>
 
-          <span class="metric-pill">Single request context</span>
+          <span class="metric-pill">{{ hasAccessKey() ? 'Shared key ready' : 'Shared key required' }}</span>
         </div>
 
         <form class="qa-composer" [formGroup]="documentForm" (ngSubmit)="submitQuestion()">
@@ -73,6 +139,10 @@
           }
 
           <div class="composer-actions">
+            @if (!hasAccessKey()) {
+              <p class="composer-hint">Save the shared access key above to unlock requests.</p>
+            }
+
             <button class="submit-button" type="submit" [disabled]="!canSubmit">
               @if (isSubmitting()) {
                 <span class="spinner-ring spinner-ring-dark"></span>

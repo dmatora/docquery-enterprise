@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../environments/environment';
 import { DocumentQaApiError, DocumentQaService } from './core/api/document-qa.service';
 import { DocumentAskRequest, DocumentAskResponse, DocumentAskUsage } from './core/api/document-qa.models';
+import { AccessKeyService } from './core/security/access-key.service';
 
 type ConversationState = 'loading' | 'success' | 'error';
 
@@ -24,12 +25,22 @@ interface ResultEntry {
 })
 export class App {
   private readonly documentQaService = inject(DocumentQaService);
+  private readonly accessKeyService = inject(AccessKeyService);
 
   protected readonly title = 'Docquery Web MVP';
   protected readonly environmentLabel = environment.production ? 'Production API' : 'Local API';
   protected readonly apiBaseUrl = environment.apiBaseUrl;
   protected readonly isSubmitting = signal(false);
   protected readonly latestResult = signal<ResultEntry | null>(null);
+  protected readonly hasAccessKey = this.accessKeyService.hasAccessKey;
+  protected readonly isEditingAccessKey = signal(!this.accessKeyService.hasAccessKey());
+  protected readonly maskedAccessKey = computed(() => this.maskAccessKey(this.accessKeyService.accessKey()));
+  protected readonly accessKeyForm = new FormGroup({
+    accessKey: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.pattern(/\S/)],
+    }),
+  });
   protected readonly documentForm = new FormGroup({
     documentText: new FormControl('', {
       nonNullable: true,
@@ -40,6 +51,10 @@ export class App {
       validators: [Validators.required, Validators.pattern(/\S/)],
     }),
   });
+
+  protected get accessKeyControl(): FormControl<string> {
+    return this.accessKeyForm.controls.accessKey;
+  }
 
   protected get documentTextControl(): FormControl<string> {
     return this.documentForm.controls.documentText;
@@ -64,11 +79,48 @@ export class App {
   }
 
   protected get canSubmit(): boolean {
-    return this.documentForm.valid && !this.isSubmitting();
+    return this.hasAccessKey() && this.documentForm.valid && !this.isSubmitting();
+  }
+
+  protected saveAccessKey(): void {
+    this.accessKeyForm.markAllAsTouched();
+
+    if (this.accessKeyForm.invalid) {
+      return;
+    }
+
+    this.accessKeyService.setAccessKey(this.accessKeyControl.value);
+    this.resetAccessKeyInput();
+    this.isEditingAccessKey.set(false);
+  }
+
+  protected startAccessKeyEdit(): void {
+    this.resetAccessKeyInput(this.accessKeyService.accessKey());
+    this.isEditingAccessKey.set(true);
+  }
+
+  protected cancelAccessKeyEdit(): void {
+    if (!this.hasAccessKey()) {
+      return;
+    }
+
+    this.resetAccessKeyInput();
+    this.isEditingAccessKey.set(false);
+  }
+
+  protected clearAccessKey(): void {
+    this.accessKeyService.clearAccessKey();
+    this.resetAccessKeyInput();
+    this.isEditingAccessKey.set(false);
   }
 
   protected async submitQuestion(): Promise<void> {
     this.documentForm.markAllAsTouched();
+
+    if (!this.hasAccessKey()) {
+      this.accessKeyForm.markAllAsTouched();
+      return;
+    }
 
     if (!this.canSubmit) {
       return;
@@ -160,5 +212,23 @@ export class App {
       title: 'Unexpected error',
       message: 'The request failed before the response could be rendered.',
     };
+  }
+
+  private resetAccessKeyInput(value = ''): void {
+    this.accessKeyForm.reset({
+      accessKey: value,
+    });
+  }
+
+  private maskAccessKey(accessKey: string): string {
+    if (accessKey.length === 0) {
+      return 'Not configured';
+    }
+
+    if (accessKey.length <= 8) {
+      return 'Stored in browser';
+    }
+
+    return `${accessKey.slice(0, 4)}...${accessKey.slice(-4)}`;
   }
 }

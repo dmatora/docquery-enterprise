@@ -28,3 +28,71 @@ code,
 pre {
   font-family: 'JetBrains Mono', monospace;
 }
+
+.security-shell {
+  @apply rounded-lg border border-slate-200 bg-white p-4 shadow-sm;
+}
+
+.security-header {
+  @apply flex flex-col gap-3 border-b border-slate-200 pb-3 sm:flex-row sm:items-start sm:justify-between;
+}
+
+.security-title {
+  @apply mt-1 text-xl font-semibold text-slate-950;
+}
+
+.security-copy {
+  @apply mt-2 max-w-3xl text-sm leading-6 text-slate-600;
+}
+
+.security-status {
+  @apply flex min-w-0 flex-col rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 sm:min-w-64;
+}
+
+.security-status code {
+  @apply mt-1 truncate font-mono text-[11px] text-emerald-800;
+}
+
+.security-badge {
+  @apply text-[11px] font-semibold uppercase tracking-[0.14em];
+}
+
+.security-form {
+  @apply mt-4 flex flex-col gap-3 lg:flex-row lg:items-end;
+}
+
+.security-field {
+  @apply min-w-0 flex-1 space-y-2;
+}
+
+.security-field label {
+  @apply block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500;
+}
+
+.field-input {
+  @apply h-11 w-full rounded-md border border-slate-300 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100;
+}
+
+.security-actions {
+  @apply flex flex-wrap gap-2;
+}
+
+.secondary-button {
+  @apply inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950;
+}
+
+.ghost-button {
+  @apply inline-flex min-h-10 items-center justify-center rounded-md px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950;
+}
+
+.security-note {
+  @apply mt-3 text-sm text-slate-500;
+}
+
+.security-summary {
+  @apply mt-4 flex flex-col gap-3 text-sm leading-6 text-slate-600 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.composer-hint {
+  @apply text-sm text-amber-700;
+}

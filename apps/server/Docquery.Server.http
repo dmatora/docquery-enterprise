@@ -1,7 +1,9 @@
 @Docquery.Server_HostAddress = http://localhost:5152
+@Docquery.Server_AccessKey = __SET_ACCESS_KEY__
 
 POST {{Docquery.Server_HostAddress}}/api/qa/ask
 Content-Type: application/json
+X-Api-Access-Key: {{Docquery.Server_AccessKey}}
 
 {
   "DocumentText": "Section 1. Payment is due within 15 calendar days after invoice receipt.",

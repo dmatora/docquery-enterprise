@@ -36,6 +36,15 @@ public static class ServiceCollectionExtensions
                 "OpenAI:ApiKey must be configured via user secrets or environment variables.")
             .ValidateOnStart();
 
+        services
+            .AddOptions<SecurityOptions>()
+            .BindConfiguration(SecurityOptions.SectionName)
+            .ValidateDataAnnotations()
+            .Validate(
+                options => IsConfigured(options.AccessKey),
+                "Security:AccessKey must be configured via user secrets or environment variables.")
+            .ValidateOnStart();
+
         services.AddSingleton(serviceProvider =>
         {
             var providerOptions = serviceProvider.GetRequiredService<IOptions<OpenAiCompatibleOptions>>().Value;

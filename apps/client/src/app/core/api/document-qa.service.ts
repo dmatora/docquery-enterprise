@@ -72,7 +72,9 @@ export class DocumentQaService {
   }
 
   private getFallbackTitle(status: number): string {
-    return status === 413
+    return status === 401
+      ? 'Access key rejected'
+      : status === 413
       ? 'Document too large'
       : status === 502
         ? 'Provider authentication failed'
@@ -87,6 +89,8 @@ export class DocumentQaService {
 
   private getFallbackMessage(status: number): string {
     switch (status) {
+      case 401:
+        return 'The shared access key is missing or invalid. Enter the current key again and retry the request.';
       case 400:
         return 'Both the document text and question are required before the API can process the request.';
       case 413:
