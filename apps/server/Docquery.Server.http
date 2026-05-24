@@ -1,0 +1,6 @@
+@Docquery.Server_HostAddress = http://localhost:5117
+
+GET {{Docquery.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

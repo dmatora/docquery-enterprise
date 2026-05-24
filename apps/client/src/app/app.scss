@@ -1,0 +1,48 @@
+.shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top, #e0f2fe 0%, #f8fafc 45%, #ffffff 100%);
+  color: #0f172a;
+}
+
+.hero {
+  width: min(100%, 48rem);
+  padding: 2rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0369a1;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.summary {
+  margin: 1rem 0 0;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #334155;
+}
+
+code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.375rem;
+  background: #e2e8f0;
+  font-family: "Cascadia Code", "Fira Code", monospace;
+}
