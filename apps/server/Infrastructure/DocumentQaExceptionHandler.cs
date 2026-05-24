@@ -1,7 +1,6 @@
 using Docquery.Server.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Docquery.Server.Infrastructure;
 
@@ -36,27 +35,6 @@ public sealed class DocumentQaExceptionHandler(
             });
         }
 
-        if (exception is not OptionsValidationException optionsValidationException)
-        {
-            return false;
-        }
-
-        logger.LogError(
-            exception,
-            "Document QA request failed because provider configuration is invalid.");
-
-        httpContext.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-
-        return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = httpContext,
-            Exception = exception,
-            ProblemDetails =
-            {
-                Status = StatusCodes.Status503ServiceUnavailable,
-                Title = "LLM provider configuration is invalid.",
-                Detail = $"Set valid values for OpenAI-compatible provider settings using user secrets or environment variables. {string.Join(" ", optionsValidationException.Failures)}"
-            }
-        });
+        return false;
     }
 }
