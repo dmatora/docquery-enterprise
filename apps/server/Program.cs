@@ -4,6 +4,7 @@ using Docquery.Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddConfiguredCors(builder.Configuration);
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<DocumentQaExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
@@ -21,6 +22,7 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseHttpsRedirection();
+app.UseCors(Docquery.Server.DependencyInjection.CorsServiceCollectionExtensions.FrontendCorsPolicyName);
 
 app.MapQaEndpoints();
 
