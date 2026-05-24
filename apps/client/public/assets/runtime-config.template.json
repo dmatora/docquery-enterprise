@@ -1,0 +1,3 @@
+{
+  "apiBaseUrl": "${DOCQUERY_API_BASE_URL}"
+}

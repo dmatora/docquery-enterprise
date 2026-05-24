@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../environments/environment';
 import { DocumentQaApiError, DocumentQaService } from './core/api/document-qa.service';
+import { RuntimeConfigService } from './core/config/runtime-config.service';
 import { DocumentAskRequest, DocumentAskResponse, DocumentAskUsage } from './core/api/document-qa.models';
 
 type ConversationState = 'loading' | 'success' | 'error';
@@ -24,10 +24,9 @@ interface ResultEntry {
 })
 export class App {
   private readonly documentQaService = inject(DocumentQaService);
+  private readonly runtimeConfig = inject(RuntimeConfigService);
 
   protected readonly title = 'Docquery Web MVP';
-  protected readonly environmentLabel = environment.production ? 'Production API' : 'Local API';
-  protected readonly apiBaseUrl = environment.apiBaseUrl;
   protected readonly isSubmitting = signal(false);
   protected readonly latestResult = signal<ResultEntry | null>(null);
   protected readonly documentForm = new FormGroup({
@@ -61,6 +60,14 @@ export class App {
 
   protected get questionCharacterCount(): number {
     return this.questionControl.value.trim().length;
+  }
+
+  protected get apiLabel(): string {
+    return 'Configured API';
+  }
+
+  protected get apiBaseUrl(): string {
+    return this.runtimeConfig.apiBaseUrl ?? 'Runtime config pending';
   }
 
   protected get canSubmit(): boolean {

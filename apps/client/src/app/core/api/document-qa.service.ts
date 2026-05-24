@@ -1,8 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { TimeoutError, catchError, throwError, timeout } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { DocumentAskRequest, DocumentAskResponse } from './document-qa.models';
+import { RuntimeConfigService } from '../config/runtime-config.service';
 
 interface ProblemDetailsPayload {
   title?: string;
@@ -19,10 +19,10 @@ export interface DocumentQaApiError {
 @Injectable({ providedIn: 'root' })
 export class DocumentQaService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = `${environment.apiBaseUrl}/api/qa/ask`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
 
   ask(request: DocumentAskRequest) {
-    return this.http.post<DocumentAskResponse>(this.endpoint, request).pipe(
+    return this.http.post<DocumentAskResponse>(`${this.runtimeConfig.requiredApiBaseUrl}/api/qa/ask`, request).pipe(
       timeout(95_000),
       catchError((error) => throwError(() => this.mapError(error)))
     );

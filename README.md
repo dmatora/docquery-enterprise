@@ -42,6 +42,36 @@ npm run build:server
 npx nx test client
 ```
 
+## Frontend runtime configuration
+
+The Angular client now loads its API base URL at runtime from `apps/client/public/assets/runtime-config.json`. The production bundle is no longer tied to `environment.ts` file replacements for API routing.
+
+Local development default:
+
+```json
+{
+  "apiBaseUrl": "http://localhost:5152"
+}
+```
+
+The Docker image uses `apps/client/public/assets/runtime-config.template.json` and expands it at container startup with `envsubst`.
+
+## Frontend Docker image
+
+Build the client image from the monorepo root:
+
+```powershell
+docker build -f apps/client/Dockerfile -t docquery-client .
+```
+
+Run the same image against any backend by changing only the container environment variable:
+
+```powershell
+docker run --rm -p 8080:80 -e DOCQUERY_API_BASE_URL="https://docquery.dmitry-matora.com" docquery-client
+```
+
+Nginx startup wiring lives in `apps/client/docker/40-runtime-config.sh`, and SPA routing is configured in `apps/client/nginx/default.conf`.
+
 ## Backend configuration
 
 The server uses an OpenAI-compatible chat completion provider.
