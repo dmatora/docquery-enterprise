@@ -30,10 +30,11 @@ public static class QaEndpoints
     }
 
     private static async Task<Ok<DocumentAskResponse>> HandleAskAsync(
+        HttpContext httpContext,
         DocumentAskRequest request,
-        IDocumentQaService documentQaService,
         CancellationToken cancellationToken)
     {
+        var documentQaService = httpContext.RequestServices.GetRequiredService<IDocumentQaService>();
         var response = await documentQaService.AskAsync(request, cancellationToken);
         return TypedResults.Ok(response);
     }

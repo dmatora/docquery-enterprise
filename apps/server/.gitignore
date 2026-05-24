@@ -16,3 +16,7 @@ publish/
 
 # Local logs
 *.log
+
+# OS metadata
+._*
+.DS_Store

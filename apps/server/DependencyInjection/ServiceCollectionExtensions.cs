@@ -9,13 +9,15 @@ namespace Docquery.Server.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
+    private const string ConfigureViaUserSecretsPlaceholder = "__CONFIGURE_VIA_USER_SECRETS__";
+
     public static IServiceCollection AddDocumentQa(this IServiceCollection services)
     {
         services
             .AddOptions<DocumentQaOptions>()
             .BindConfiguration(DocumentQaOptions.SectionName)
             .ValidateDataAnnotations()
-            .Validate(options => !string.IsNullOrWhiteSpace(options.Model), "DocumentQa:Model is required.")
+            .Validate(options => IsConfigured(options.Model), "DocumentQa:Model must be configured via user secrets or environment variables.")
             .Validate(options => !string.IsNullOrWhiteSpace(options.SystemPrompt), "DocumentQa:SystemPrompt is required.")
             .ValidateOnStart();
 
@@ -24,8 +26,14 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(OpenAiCompatibleOptions.SectionName)
             .ValidateDataAnnotations()
             .Validate(
-                options => Uri.TryCreate(options.Endpoint, UriKind.Absolute, out _),
+                options => IsConfigured(options.Endpoint),
+                "OpenAI:Endpoint must be configured via user secrets or environment variables.")
+            .Validate(
+                options => !IsConfigured(options.Endpoint) || Uri.TryCreate(options.Endpoint, UriKind.Absolute, out _),
                 "OpenAI:Endpoint must be an absolute URI.")
+            .Validate(
+                options => IsConfigured(options.ApiKey),
+                "OpenAI:ApiKey must be configured via user secrets or environment variables.")
             .ValidateOnStart();
 
         services.AddSingleton(serviceProvider =>
@@ -45,5 +53,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDocumentQaService, ChatCompletionService>();
 
         return services;
+    }
+
+    private static bool IsConfigured(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && !string.Equals(value, ConfigureViaUserSecretsPlaceholder, StringComparison.Ordinal);
     }
 }
